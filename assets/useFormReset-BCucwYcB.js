@@ -1,0 +1,1 @@
+import{V as i,r as n}from"./index-B2sfaK9H.js";function l(r,a,d){let t=i(()=>{d&&d(a)});n.useEffect(()=>{var o;let e=r==null||(o=r.current)===null||o===void 0?void 0:o.form;return e==null||e.addEventListener("reset",t),()=>{e==null||e.removeEventListener("reset",t)}},[r,t])}export{l as $};
