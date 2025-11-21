@@ -128,3 +128,7 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# CF and Wrangler files
+.wrangler
+.dev.vars*

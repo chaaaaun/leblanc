@@ -1,0 +1,10 @@
+name = "leblanc"
+compatibility_date = "2025-04-03"
+assets = { not_found_handling = "single-page-application" }
+
+workers_dev = false
+preview_urls = false
+
+[[routes]]
+pattern = "leblanc.rizu.me"
+custom_domain = true
