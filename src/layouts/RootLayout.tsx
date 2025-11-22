@@ -2,6 +2,7 @@ import { useState, Suspense } from 'react';
 import { Outlet, Link } from '@tanstack/react-router';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem } from "@heroui/navbar";
 import { Spinner } from "@heroui/spinner";
+import { StorageWarning } from '../components/StorageWarning';
 
 export function RootLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,6 +55,7 @@ export function RootLayout() {
           ))}
         </NavbarMenu>
       </Navbar>
+      <StorageWarning />
       <main className="container mx-auto max-w-4xl p-4">
         <Suspense fallback={<div className="flex justify-center p-10"><Spinner size="lg" /></div>}>
           <Outlet />

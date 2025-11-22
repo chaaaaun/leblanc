@@ -39,3 +39,22 @@ export const clearDatabase = (): Promise<void> => {
     transaction.onerror = () => reject(transaction.error);
   });
 };
+
+export const importData = (data: { beans: any[], brews: any[] }): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([BEAN_STORE, BREW_STORE], 'readwrite');
+    const beanStore = transaction.objectStore(BEAN_STORE);
+    const brewStore = transaction.objectStore(BREW_STORE);
+
+    // Clear existing data first? Or merge? 
+    // Let's clear to avoid ID conflicts if importing a full backup
+    beanStore.clear();
+    brewStore.clear();
+
+    data.beans.forEach(bean => beanStore.add(bean));
+    data.brews.forEach(brew => brewStore.add(brew));
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+};

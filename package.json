@@ -18,6 +18,7 @@
         "wrangler": "^4.50.0"
     },
     "dependencies": {
+        "@heroui/alert": "^2.2.27",
         "@heroui/autocomplete": "^2.3.29",
         "@heroui/button": "^2.2.27",
         "@heroui/card": "^2.2.25",

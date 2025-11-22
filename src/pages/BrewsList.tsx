@@ -14,6 +14,7 @@ export function BrewsList() {
   const [filterMethod, setFilterMethod] = useState<string>('');
   const [filterBeanId, setFilterBeanId] = useState<string>('');
   const [filterRating, setFilterRating] = useState<number[]>([1, 5]);
+  const [sortOption, setSortOption] = useState<string>('date-desc');
   
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [brewToDelete, setBrewToDelete] = useState<number | null>(null);
@@ -30,13 +31,28 @@ export function BrewsList() {
   }, [brews]);
 
   const filteredBrews = useMemo(() => {
-    return brews.filter(brew => {
+    const result = brews.filter(brew => {
       if (filterMethod && brew.method !== filterMethod) return false;
       if (filterBeanId && !brew.beanIds.includes(Number(filterBeanId))) return false;
       if (brew.rating && (brew.rating < filterRating[0] || brew.rating > filterRating[1])) return false;
       return true;
     });
-  }, [brews, filterMethod, filterBeanId, filterRating]);
+
+    return result.sort((a, b) => {
+      switch (sortOption) {
+        case 'date-desc':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'date-asc':
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case 'rating-desc':
+          return (b.rating || 0) - (a.rating || 0);
+        case 'rating-asc':
+          return (a.rating || 0) - (b.rating || 0);
+        default:
+          return 0;
+      }
+    });
+  }, [brews, filterMethod, filterBeanId, filterRating, sortOption]);
 
   const getBeanNames = (beanIds: number[]) => {
     return beanIds
@@ -90,6 +106,18 @@ export function BrewsList() {
             size="sm"
         >
             {beans.map(b => <SelectItem key={String(b.id)}>{b.name}</SelectItem>)}
+        </Select>
+        <Select 
+            label="Sort By" 
+            selectedKeys={[sortOption]}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="max-w-xs"
+            size="sm"
+        >
+            <SelectItem key="date-desc">Date (Newest)</SelectItem>
+            <SelectItem key="date-asc">Date (Oldest)</SelectItem>
+            <SelectItem key="rating-desc">Rating (High to Low)</SelectItem>
+            <SelectItem key="rating-asc">Rating (Low to High)</SelectItem>
         </Select>
         <div className="w-full max-w-xs px-2">
           <Slider 
