@@ -6,6 +6,7 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Input } from "@heroui/input";
 import { Select, SelectItem } from "@heroui/select";
 import { Chip } from "@heroui/chip";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/modal";
 
 export function BeansList() {
   const [beans, setBeans] = useState<Bean[]>([]);
@@ -13,6 +14,10 @@ export function BeansList() {
   const [filterCountry, setFilterCountry] = useState<string>('');
   const [filterProcess, setFilterProcess] = useState<string>('');
   const [filterRoastery, setFilterRoastery] = useState<string>('');
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [beanToDelete, setBeanToDelete] = useState<number | null>(null);
+  const [associatedBrewsCount, setAssociatedBrewsCount] = useState<number>(0);
 
   useEffect(() => {
     getBeans().then(setBeans);
@@ -36,23 +41,26 @@ export function BeansList() {
     });
   }, [beans, filterType, filterCountry, filterProcess, filterRoastery]);
 
-  const handleDeleteBean = async (beanId: number) => {
-    if (!confirm('Are you sure you want to delete this bean?')) return;
-
+  const confirmDelete = async (beanId: number) => {
     const associatedBrews = await getBrewsByBeanId(beanId);
-    
-    if (associatedBrews.length > 0) {
-      const confirmMessage = `This bean is used in ${associatedBrews.length} brew(s). Deleting it will also delete these brews. Proceed?`;
-      if (!confirm(confirmMessage)) return;
-      
-      // Delete associated brews
+    setAssociatedBrewsCount(associatedBrews.length);
+    setBeanToDelete(beanId);
+    onOpen();
+  };
+
+  const handleDeleteBean = async () => {
+    if (beanToDelete === null) return;
+
+    if (associatedBrewsCount > 0) {
+      const associatedBrews = await getBrewsByBeanId(beanToDelete);
       await Promise.all(associatedBrews.map(brew => deleteBrew(brew.id!)));
     }
 
-    await deleteBean(beanId);
-    // Refresh data
+    await deleteBean(beanToDelete);
     const fetchedBeans = await getBeans();
     setBeans(fetchedBeans);
+    setBeanToDelete(null);
+    onOpenChange(); // Close modal
   };
 
   return (
@@ -137,7 +145,7 @@ export function BeansList() {
                     <Button size="sm" color="primary" variant="flat" as="div">Edit</Button>
                   </Link>
                   <Button
-                    onPress={() => handleDeleteBean(bean.id!)}
+                    onPress={() => confirmDelete(bean.id!)}
                     size="sm"
                     color="danger"
                     variant="flat"
@@ -164,6 +172,33 @@ export function BeansList() {
           ))}
         </div>
       )}
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Delete Bean</ModalHeader>
+              <ModalBody>
+                <p>Are you sure you want to delete this bean?</p>
+                {associatedBrewsCount > 0 && (
+                  <p className="text-danger">
+                    Warning: This bean is used in {associatedBrewsCount} brew(s). 
+                    Deleting it will also delete these brews.
+                  </p>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleDeleteBean}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

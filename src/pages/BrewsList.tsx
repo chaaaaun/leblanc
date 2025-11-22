@@ -6,6 +6,7 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Select, SelectItem } from "@heroui/select";
 import { Chip } from "@heroui/chip";
 import { Slider } from "@heroui/slider";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/modal";
 
 export function BrewsList() {
   const [beans, setBeans] = useState<Bean[]>([]);
@@ -13,6 +14,9 @@ export function BrewsList() {
   const [filterMethod, setFilterMethod] = useState<string>('');
   const [filterBeanId, setFilterBeanId] = useState<string>('');
   const [filterRating, setFilterRating] = useState<number[]>([1, 5]);
+  
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [brewToDelete, setBrewToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([getBeans(), getBrews()]).then(([fetchedBeans, fetchedBrews]) => {
@@ -41,11 +45,18 @@ export function BrewsList() {
       .join(', ');
   };
 
-  const handleDeleteBrew = async (brewId: number) => {
-    if (!confirm('Are you sure you want to delete this brew?')) return;
-    await deleteBrew(brewId);
+  const confirmDelete = (brewId: number) => {
+    setBrewToDelete(brewId);
+    onOpen();
+  };
+
+  const handleDeleteBrew = async () => {
+    if (brewToDelete === null) return;
+    await deleteBrew(brewToDelete);
     const fetchedBrews = await getBrews();
     setBrews(fetchedBrews);
+    setBrewToDelete(null);
+    onOpenChange(); // Close modal
   };
 
   return (
@@ -139,7 +150,7 @@ export function BrewsList() {
                     <Button size="sm" color="success" variant="flat" as="div">Duplicate</Button>
                   </Link>
                   <Button
-                    onPress={() => handleDeleteBrew(brew.id!)}
+                    onPress={() => confirmDelete(brew.id!)}
                     size="sm"
                     color="danger"
                     variant="flat"
@@ -166,6 +177,27 @@ export function BrewsList() {
           ))}
         </div>
       )}
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Delete Brew</ModalHeader>
+              <ModalBody>
+                <p>Are you sure you want to delete this brew? This action cannot be undone.</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="danger" onPress={handleDeleteBrew}>
+                  Delete
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

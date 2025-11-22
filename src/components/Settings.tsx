@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getBeans, getBrews, clearDatabase } from '../db';
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
@@ -9,7 +10,9 @@ import type { ThemePreference } from '../theme/ThemeProvider';
 
 export function Settings() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen: isErrorOpen, onOpen: onErrorOpen, onOpenChange: onErrorOpenChange } = useDisclosure();
   const { preference, resolvedTheme, setPreference } = useTheme();
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleExport = async () => {
     try {
@@ -32,7 +35,8 @@ export function Settings() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Failed to export data');
+      setErrorMessage('Failed to export data');
+      onErrorOpen();
     }
   };
 
@@ -42,7 +46,8 @@ export function Settings() {
       window.location.reload();
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('Failed to delete data');
+      setErrorMessage('Failed to delete data');
+      onErrorOpen();
     }
   };
 
@@ -127,6 +132,23 @@ export function Settings() {
                   onClose();
                 }}>
                   Delete Everything
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isErrorOpen} onOpenChange={onErrorOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Error</ModalHeader>
+              <ModalBody>
+                <p>{errorMessage}</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" onPress={onClose}>
+                  OK
                 </Button>
               </ModalFooter>
             </>

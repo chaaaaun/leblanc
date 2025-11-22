@@ -7,10 +7,13 @@ import { Select, SelectItem } from "@heroui/select";
 import { Button } from "@heroui/button";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Slider } from "@heroui/slider";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/modal";
 
 export function BrewForm({ initialData }: { initialData?: Brew }) {
   const navigate = useNavigate();
   const [beans, setBeans] = useState<Bean[]>([]);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     getBeans().then(setBeans);
@@ -37,7 +40,8 @@ export function BrewForm({ initialData }: { initialData?: Brew }) {
       const validBeanIds = value.beanIds.filter(id => id !== 0).map(Number);
       
       if (validBeanIds.length === 0) {
-        alert('Please select at least one bean');
+        setErrorMessage('Please select at least one bean');
+        onOpen();
         return;
       }
 
@@ -59,6 +63,7 @@ export function BrewForm({ initialData }: { initialData?: Brew }) {
   });
 
   return (
+    <>
     <Card className="max-w-[600px] mx-auto">
       <CardHeader>
         <h3 className="text-xl font-bold">{initialData?.id ? 'Edit Brew' : 'Add New Brew'}</h3>
@@ -330,6 +335,25 @@ export function BrewForm({ initialData }: { initialData?: Brew }) {
         </form>
       </CardBody>
     </Card>
+
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">Validation Error</ModalHeader>
+            <ModalBody>
+              <p>{errorMessage}</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="primary" onPress={onClose}>
+                OK
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+    </>
   );
 }
 
